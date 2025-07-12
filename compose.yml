@@ -1,0 +1,81 @@
+services:
+  db:
+    image: postgres:13
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=lafdb
+    ports:
+      - "5432:5432"
+
+  redis:
+    image: redis:6-alpine
+
+  web:
+    build: ./app/backend
+    command: gunicorn --bind 0.0.0.0:5000 laf.app:app
+    volumes:
+      - ./app/backend:/app
+    ports:
+      - "5000:5000"
+    environment:
+      - DATABASE_URL=postgresql://user:password@db:5432/lafdb
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - BACKEND_URL=http://web:5000
+    depends_on:
+      - db
+      - redis
+
+  worker:
+    build: ./app/backend
+    command: poetry run celery -A laf.tasks worker --loglevel=info
+    volumes:
+      - ./app/backend:/app
+    environment:
+      - DATABASE_URL=postgresql://user:password@db:5432/lafdb
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - BACKEND_URL=http://web:5000
+    depends_on:
+      - web
+      - redis
+
+  instrument-a:
+    build: ./app/instruments/instrument-a
+    volumes:
+      - ./app/instruments/instrument-a:/app
+    environment:
+      - BACKEND_URL=http://web:5000
+    depends_on:
+      - web
+
+  instrument-b:
+    build: ./app/instruments/instrument-b
+    volumes:
+      - ./app/instruments/instrument-b:/app
+    environment:
+      - BACKEND_URL=http://web:5000
+    depends_on:
+      - web
+
+  frontend:
+    build:
+      context: ./app/frontend
+      args:
+        USER_ID: ${UID}
+    volumes:
+      - ./app/frontend:/app
+      - /app/node_modules
+    ports:
+      - "3000:3000"
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+      - VITE_API_URL=${VITE_API_URL}
+    depends_on:
+      - web
+
+volumes:
+  postgres_data:
