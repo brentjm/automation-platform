@@ -76,3 +76,19 @@ via Celery.
 and lab visuals.
 
 
+### TODO
+
+**1. Flask-Login + bcrypt (Easiest Start)**
+```python
+# Simple username/password with proper hashing
+# Supports user sessions, login tracking
+# Easy audit trail implementation
+
+Flask-Login + Flask-Principal + bcrypt + SQLAlchemy
+```
+
+This provides:
+- User authentication (Flask-Login)
+- Authorization/permissions (Flask-Principal) 
+- Secure password storage (bcrypt)
+- Audit trail in database (SQLAlchemy)

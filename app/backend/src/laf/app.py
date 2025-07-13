@@ -14,22 +14,27 @@ def create_app():
     @app.route("/api/workflows", methods=["POST"])
     def create_workflow():
         data = request.get_json()
-        new_workflow = Workflow(name=data["name"])
+        new_workflow = Workflow()
+        new_workflow.name = data["name"]
         db.session.add(new_workflow)
         db.session.commit()
 
         for task_data in data.get("tasks", []):
-            new_task = Task(
-                name=task_data["name"],
-                instrument=task_data["instrument"],
-                workflow_id=new_workflow.id,
-            )
+            new_task = Task()
+            new_task.name = task_data["name"]
+            new_task.instrument = task_data["instrument"]
+            new_task.workflow_id = new_workflow.id
             db.session.add(new_task)
         db.session.commit()
 
         # Start the first task
-        first_task = new_workflow.tasks[0]
-        run_instrument_task.delay(first_task.id, first_task.instrument)
+        first_task = (
+            Task.query.filter_by(workflow_id=new_workflow.id).order_by(Task.id).first()
+        )
+        if first_task:
+            run_instrument_task(
+                task_id=first_task.id, instrument_name=first_task.instrument
+            )
 
         return jsonify({"id": new_workflow.id, "name": new_workflow.name}), 201
 
@@ -62,7 +67,9 @@ def create_app():
 
         task.status = data["status"]
         if "results" in data:
-            new_result = Result(task_id=task.id, data=data["results"])
+            new_result = Result()
+            new_result.task_id = task.id
+            new_result.data = data["results"]
             db.session.add(new_result)
 
         db.session.commit()
@@ -77,7 +84,9 @@ def create_app():
             current_task_index = tasks_in_workflow.index(task)
             if current_task_index + 1 < len(tasks_in_workflow):
                 next_task = tasks_in_workflow[current_task_index + 1]
-                run_instrument_task.delay(next_task.id, next_task.instrument)
+                run_instrument_task.delay(
+                    task_id=next_task.id, instrument_name=next_task.instrument
+                )
 
         return jsonify({"message": "Task updated"}), 200
 
@@ -90,4 +99,3 @@ if __name__ == "__main__":
     with app.app_context():
         db.create_all()
     app.run(host="0.0.0.0", port=5000)
-
