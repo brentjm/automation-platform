@@ -36,4 +36,3 @@ def run_instrument_task(self, task_id, instrument_name):
         )
         self.update_state(state="FAILURE", meta=str(e))
         raise
-
