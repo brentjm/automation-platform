@@ -1,30 +1,4 @@
-# Subject: Job Opportunity: Solution Architect (Remote/WFH with Travel)
-
-## Job description
-
-    Job Title: Solution Architect
-
-    Location: Remote/WFH and travel to Rahway, NJ (Expenses reimbursed by the client)
-
-    Duration: 6 months+
-
-     
-
-    Description:
-
-    Design and implement solutions using Scitara, BIOVIA (CisPro/OneLab), and Appian to solve business challenges.
-    Collaborate with stakeholders to gather requirements and translate them into architectural designs.
-    Lead system integration efforts to ensure seamless data flow between applications.
-    Provide support and optimization for existing solutions, addressing issues and implementing enhancements.
-    Stay updated on industry trends and recommend innovative solutions for improved performance.
-     
-
-    Qualifications:
-
-    Bachelor’s degree in Computer Science, Information Technology, or a related field; Master’s preferred.
-    At least 5 years of experience as a Solutions Architect, focusing on Scitara, BIOVIA, and Appian.
-    Experience in regulated environments, particularly in life sciences or pharmaceuticals.
-    Strong understanding of system integration and data management practices.
+# Platforms
 
 ## Overview of Requirements
 
@@ -382,5 +356,3 @@ processing, and integrations with other systems.
   - Best when data processing, filtering, and compliance are critical and best managed in OneLab.
 
 Each solution shifts the center of orchestration and data management to a different platform, depending on organizational priorities, integration complexity, and compliance needs.
-
-## Possible interview questions
