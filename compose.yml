@@ -1,3 +1,12 @@
+x-common:
+  backend: &backend_env
+    BACKEND_URL: "http://web:5000"
+  database: &database_env
+    DATABASE_URL: postgresql://user:password@db:5432/lafdb
+  celery: &celery_env
+    CELERY_BROKER_URL: redis://redis:6379/0
+    CELERY_RESULT_BACKEND: redis://redis:6379/0
+
 services:
   db:
     image: postgres:13
@@ -21,10 +30,9 @@ services:
     ports:
       - "5000:5000"
     environment:
-      - DATABASE_URL=postgresql://user:password@db:5432/lafdb
-      - CELERY_BROKER_URL=redis://redis:6379/0
-      - CELERY_RESULT_BACKEND=redis://redis:6379/0
-      - BACKEND_URL=http://web:5000
+      <<: *backend_env
+      <<: *database_env
+      <<: *celery_env
     depends_on:
       - db
       - redis
@@ -35,10 +43,9 @@ services:
     volumes:
       - ./app/backend:/app
     environment:
-      - DATABASE_URL=postgresql://user:password@db:5432/lafdb
-      - CELERY_BROKER_URL=redis://redis:6379/0
-      - CELERY_RESULT_BACKEND=redis://redis:6379/0
-      - BACKEND_URL=http://web:5000
+      <<: *backend_env
+      <<: *database_env
+      <<: *celery_env
     depends_on:
       - web
       - redis
@@ -48,7 +55,7 @@ services:
     volumes:
       - ./app/instruments/instrument-a:/app
     environment:
-      - BACKEND_URL=http://web:5000
+      <<: *backend_env
     depends_on:
       - web
 
@@ -57,7 +64,7 @@ services:
     volumes:
       - ./app/instruments/instrument-b:/app
     environment:
-      - BACKEND_URL=http://web:5000
+      <<: *backend_env
     depends_on:
       - web
 

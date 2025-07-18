@@ -1,0 +1,24 @@
+services:
+  web:
+    volumes:
+      - ./app/backend:/app
+
+  worker:
+    volumes:
+      - ./app/backend:/app
+
+  instrument-a:
+    volumes:
+      - ./app/instruments/instrument-a:/app
+
+  instrument-b:
+    volumes:
+      - ./app/instruments/instrument-b:/app
+
+  frontend:
+    volumes:
+      - ./app/frontend:/app
+      - /app/node_modules
+
+volumes:
+  postgres_data:
