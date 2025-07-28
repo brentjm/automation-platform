@@ -1,3 +1,4 @@
+
 x-common:
   backend: &backend_env
     BACKEND_URL: "http://web:5000"
@@ -80,5 +81,77 @@ services:
     depends_on:
       - web
 
+  nifi:
+    image: apache/nifi:latest
+    ports:
+      - "8080:8080"
+    environment:
+      - NIFI_WEB_HTTP_PORT=8080
+    volumes:
+      - nifi_data:/opt/nifi/nifi-current/data
+
+  kafka:
+    image: bitnami/kafka:latest
+    ports:
+      - "9092:9092"
+    environment:
+      - KAFKA_BROKER_ID=1
+      - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
+      - KAFKA_LISTENERS=PLAINTEXT://:9092
+      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092
+    depends_on:
+      - zookeeper
+
+  zookeeper:
+    image: bitnami/zookeeper:latest
+    ports:
+      - "2181:2181"
+    environment:
+      - ALLOW_ANONYMOUS_LOGIN=yes
+
+  airflow:
+    image: apache/airflow:2.7.2
+    environment:
+      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+      - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://user:password@db:5432/lafdb
+      - AIRFLOW__CORE__FERNET_KEY=your_fernet_key
+      - AIRFLOW__CORE__LOAD_EXAMPLES=False
+    volumes:
+      - airflow_data:/opt/airflow
+    ports:
+      - "8081:8080"
+    depends_on:
+      - db
+      - redis
+
+  atlas:
+    image: apache/atlas:latest
+    ports:
+      - "21000:21000"
+    environment:
+      - ATLAS_DB_TYPE=postgres
+      - ATLAS_DB_HOST=db
+      - ATLAS_DB_USER=user
+      - ATLAS_DB_PASS=password
+      - ATLAS_DB_NAME=lafdb
+    depends_on:
+      - db
+
+  ranger:
+    image: apache/ranger:latest
+    ports:
+      - "6080:6080"
+    environment:
+      - DB_FLAVOR=POSTGRES
+      - SQL_CONNECTOR=postgresql
+      - DB_HOST=db
+      - DB_NAME=lafdb
+      - DB_USER=user
+      - DB_PASSWORD=password
+    depends_on:
+      - db
+
 volumes:
   postgres_data:
+  nifi_data:
+  airflow_data:
