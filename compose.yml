@@ -30,9 +30,7 @@ services:
     ports:
       - "5000:5000"
     environment:
-      <<: *backend_env
-      <<: *database_env
-      <<: *celery_env
+      <<: [*backend_env, *database_env, *celery_env]
     depends_on:
       - db
       - redis
@@ -43,9 +41,7 @@ services:
     volumes:
       - ./app/backend:/app
     environment:
-      <<: *backend_env
-      <<: *database_env
-      <<: *celery_env
+      <<: [*backend_env, *database_env, *celery_env]
     depends_on:
       - web
       - redis
