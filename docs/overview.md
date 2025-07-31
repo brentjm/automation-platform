@@ -35,8 +35,10 @@ a new workflow/task via a button or form.
 
 - The Flask backend creates a new workflow and associated tasks in the Postgres
 database (`db` service).
-- The backend schedules the first task by calling
-`run_instrument_task.delay(...)`, which sends the task to the Celery queue
+- The Flask backend creates a new workflow and associated tasks in the Postgres
+database (`db` service).
+- The backend does **not** directly start the first task. Instead, database triggers emit a notification.
+- A background listener in the backend receives the notification and triggers the instrument service for the first task.
 (using Redis as the broker).
 
 ---
@@ -63,8 +65,7 @@ results.
 
 - The backend receives the webhook, updates the task status and results in the
 database.
-- If there are more tasks in the workflow, the backend schedules the next task
-via Celery.
+- If there are more tasks in the workflow, the backend schedules the next task via database update, which triggers another notification and service call.
 
 ---
 

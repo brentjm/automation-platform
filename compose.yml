@@ -24,7 +24,7 @@ services:
 
   web:
     build: ./app/backend
-    command: gunicorn --bind 0.0.0.0:5000 laf.app:app
+    command: ["bash", "/app/wait-for-it.sh", "db:5432", "--", "gunicorn", "--bind", "0.0.0.0:5000", "laf.app:app"]
     volumes:
       - ./app/backend:/app
     ports:

@@ -1,7 +1,11 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from .models import db, Workflow, Task, Result
-from .tasks import run_instrument_task
+from .webhook_handler import WebhookHandler
+import threading
+import psycopg2
+import psycopg2.extensions
+import os
 
 
 def create_app():
@@ -10,32 +14,31 @@ def create_app():
     CORS(app)
 
     db.init_app(app)
+    with app.app_context():
+        db.create_all()
+
+    # Initialize webhook handler
+    webhook_handler = WebhookHandler(app)
 
     @app.route("/api/workflows", methods=["POST"])
     def create_workflow():
         data = request.get_json()
         new_workflow = Workflow()
         new_workflow.name = data["name"]
+        new_workflow.status = "pending"
         db.session.add(new_workflow)
-        db.session.commit()
+        db.session.flush()  # Get the ID without committing
 
-        for task_data in data.get("tasks", []):
+        for i, task_data in enumerate(data.get("tasks", [])):
             new_task = Task()
             new_task.name = task_data["name"]
             new_task.instrument = task_data["instrument"]
             new_task.workflow_id = new_workflow.id
+            new_task.order_index = i
+            new_task.status = "pending"
             db.session.add(new_task)
+
         db.session.commit()
-
-        # Start the first task
-        first_task = (
-            Task.query.filter_by(workflow_id=new_workflow.id).order_by(Task.id).first()
-        )
-        if first_task:
-            run_instrument_task(
-                task_id=first_task.id, instrument_name=first_task.instrument
-            )
-
         return jsonify({"id": new_workflow.id, "name": new_workflow.name}), 201
 
     @app.route("/api/workflows", methods=["GET"])
@@ -44,7 +47,7 @@ def create_app():
         output = []
         for w in workflows:
             tasks = []
-            for t in w.tasks:
+            for t in sorted(w.tasks, key=lambda x: x.order_index):
                 results = [{"id": r.id, "data": r.data} for r in t.results]
                 tasks.append(
                     {
@@ -52,11 +55,43 @@ def create_app():
                         "name": t.name,
                         "instrument": t.instrument,
                         "status": t.status,
+                        "order_index": t.order_index,
                         "results": results,
                     }
                 )
-            output.append({"id": w.id, "name": w.name, "tasks": tasks})
+            output.append(
+                {"id": w.id, "name": w.name, "status": w.status, "tasks": tasks}
+            )
         return jsonify(output)
+
+    @app.route("/api/workflows/<int:workflow_id>", methods=["PUT"])
+    def update_workflow(workflow_id):
+        workflow = Workflow.query.get_or_404(workflow_id)
+        data = request.get_json()
+
+        if "status" in data:
+            workflow.status = data["status"]
+        if "name" in data:
+            workflow.name = data["name"]
+
+        db.session.commit()
+        return jsonify({"message": "Workflow updated"}), 200
+
+    @app.route("/api/tasks/<int:task_id>", methods=["PUT"])
+    def update_task(task_id):
+        task = Task.query.get_or_404(task_id)
+        data = request.get_json()
+
+        if "status" in data:
+            task.status = data["status"]
+        if "results" in data:
+            new_result = Result()
+            new_result.task_id = task.id
+            new_result.data = data["results"]
+            db.session.add(new_result)
+
+        db.session.commit()
+        return jsonify({"message": "Task updated"}), 200
 
     @app.route("/api/webhook/task/update", methods=["POST"])
     def webhook_task_update():
@@ -73,22 +108,14 @@ def create_app():
             db.session.add(new_result)
 
         db.session.commit()
-
-        # If completed, trigger next task in workflow
-        if task.status == "completed":
-            tasks_in_workflow = (
-                Task.query.filter_by(workflow_id=task.workflow_id)
-                .order_by(Task.id)
-                .all()
-            )
-            current_task_index = tasks_in_workflow.index(task)
-            if current_task_index + 1 < len(tasks_in_workflow):
-                next_task = tasks_in_workflow[current_task_index + 1]
-                run_instrument_task.delay(
-                    task_id=next_task.id, instrument_name=next_task.instrument
-                )
-
         return jsonify({"message": "Task updated"}), 200
+
+    # Start the database listener in a separate thread
+    def start_db_listener():
+        webhook_handler.start_listener()
+
+    listener_thread = threading.Thread(target=start_db_listener, daemon=True)
+    listener_thread.start()
 
     return app
 
@@ -96,6 +123,4 @@ def create_app():
 app = create_app()
 
 if __name__ == "__main__":
-    with app.app_context():
-        db.create_all()
     app.run(host="0.0.0.0", port=5000)

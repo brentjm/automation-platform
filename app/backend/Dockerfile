@@ -8,7 +8,8 @@ RUN pip install poetry \
     && poetry config virtualenvs.create false \
     && poetry install --without dev --no-interaction --no-ansi --no-root \
     && useradd --no-log-init --create-home --shell /bin/bash appuser \
-    && chown -R appuser:appuser /app
+    && chown -R appuser:appuser /app \
+    && chmod +x /app/wait-for-it.sh
 
 USER appuser
 
