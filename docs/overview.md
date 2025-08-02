@@ -33,31 +33,27 @@ a new workflow/task via a button or form.
 
 ### 3. Workflow/Task Creation (Backend)
 
-- The Flask backend creates a new workflow and associated tasks in the Postgres
-database (`db` service).
-- The Flask backend creates a new workflow and associated tasks in the Postgres
-database (`db` service).
-- The backend does **not** directly start the first task. Instead, database triggers emit a notification.
-- A background listener in the backend receives the notification and triggers the instrument service for the first task.
-(using Redis as the broker).
+- The Flask backend creates a new workflow entry in the worflow Postgres data base table.
+- The backend does **not** directly start the first task. Instead, database emits a notification.
+- A web hook background listener in the backend receives the notification and starts
+a workflows.
 
 ---
 
-### 4. Task Execution (Celery Worker)
+### 4. Task Execution (Celery Worker / Kubernetes Job)
 
+##### Celery Worker
+- Celery workers are for quick tasks that can be handled in the background
+(e.g. data retrieval, simple computations).
 - The Celery worker (`worker` service) picks up the task from the Redis queue.
-- The worker makes an HTTP POST request to the appropriate instrument service
-(`instrument-a` or `instrument-b`) at its `/run` endpoint, passing the task ID.
+- The worker directly executes the task.
+- This can also be used to simulate instrument workdlows for testing purposes.
 
----
-
-### 5. Instrument Simulation (Instrument Service)
-
-- The instrument service simulates the lab process (e.g., waits, generates mock
-data).
-- When done, it sends a POST request back to the backend’s webhook endpoint
-(`/api/webhook/task/update`) with the task ID, status (`completed`), and
-results.
+#### Kubernetes Job
+- For longer-running tasks, or tasks that benefit from isoloation, such as real
+instrument operations, a Kubernetes Job is created.
+- This allows for better resource management and isolation, and more modular
+workflow building.
 
 ---
 
@@ -93,3 +89,83 @@ This provides:
 - Authorization/permissions (Flask-Principal) 
 - Secure password storage (bcrypt)
 - Audit trail in database (SQLAlchemy)
+
+**2. Websockets instead of Polling**
+- Can use the Postgres LISTEN/NOTIFY feature to push updates to the frontend
+
+**3. Data Fabric**
+- Need to bring in the Apache services, Kafka, Ranger, NiFi, etc. to handle
+data ingestion, processing, and security.
+
+### Workflow Execution Diagram
+
+```mermaid
+graph TD
+    %% User Actions
+    A[Lab Scientist Creates Workflow] --> B[POST /api/workflows]
+    
+    %% Database Layer
+    B --> C[Insert into PostgreSQL Database]
+    C --> D[Database Trigger Fires]
+    D --> E[PostgreSQL NOTIFY workflow_changes]
+    
+    %% Webhook Handler Process
+    E --> F[WebhookHandler.start_listener<br/>LISTEN workflow_changes]
+    F --> G[handle_notification receives event]
+    G --> H[handle_workflow_change]
+    H --> I[start_first_task]
+    
+    %% Task Execution
+    I --> J[Find First Task in Workflow]
+    J --> K[trigger_instrument_service]
+    K --> L[Create Kubernetes Job<br/>OR<br/>Call Celery Task]
+    
+    %% Task Completion Flow
+    L --> M[Task Runs on Worker/K8s Pod]
+    M --> N[Task Updates Status in Database]
+    N --> O[Database Trigger Fires Again]
+    O --> P[PostgreSQL NOTIFY task_changes]
+    P --> Q[handle_task_change]
+    Q --> R{Task Status?}
+    
+    %% Decision Logic
+    R -->|completed| S[start_next_task]
+    R -->|running| T[Update Workflow Status]
+    R -->|failed| U[Mark Workflow Failed]
+    
+    %% Next Task or Complete
+    S --> V{More Tasks?}
+    V -->|Yes| K
+    V -->|No| W[Mark Workflow Complete]
+    
+    %% Real-time Updates
+    G --> X[broadcast_to_clients<br/>WebSocket Updates]
+    Q --> X
+    X --> Y[Frontend Gets Real-time Updates]
+    
+    %% Styling
+    classDef userAction fill:#e1f5fe
+    classDef database fill:#f3e5f5
+    classDef handler fill:#e8f5e8
+    classDef execution fill:#fff3e0
+    classDef frontend fill:#fce4ec
+    
+    class A,B userAction
+    class C,D,E,N,O,P database
+    class F,G,H,I,Q,S handler
+    class J,K,L,M execution
+    class X,Y frontend
+```
+
+**Key Components Explained:**
+
+1. **User Layer**: Lab scientist creates workflows through the web interface
+2. **Database Layer**: PostgreSQL stores data and sends automatic notifications via triggers
+3. **Webhook Handler**: Background process that listens for database changes and orchestrates tasks
+4. **Task Execution**: Either Kubernetes Jobs (production) or Celery tasks (development)
+5. **Real-time Updates**: WebSocket broadcasts keep the frontend synchronized
+
+**Flow Summary:**
+- Scientist creates workflow → Database stores it → Trigger sends notification → Handler starts first task → Task runs → Updates database → Next task starts → Repeat until all tasks complete → Frontend shows real-time progress
+
+
