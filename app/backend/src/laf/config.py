@@ -14,3 +14,9 @@ class Config:
     DB_NAME = os.environ.get("DB_NAME", "lafdb")
     DB_USER = os.environ.get("DB_USER", "user")
     DB_PASSWORD = os.environ.get("DB_PASSWORD", "password")
+
+    # Celery configuration
+    CELERY_BROKER_URL = os.environ.get("CELERY_BROKER_URL", "redis://redis:6379/0")
+    CELERY_RESULT_BACKEND = os.environ.get(
+        "CELERY_RESULT_BACKEND", "redis://redis:6379/0"
+    )
