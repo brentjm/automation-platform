@@ -34,6 +34,8 @@ a new workflow/task via a button or form.
 ### 3. Workflow/Task Creation (Backend)
 
 - The Flask backend creates a new workflow entry in the worflow Postgres data base table.
+- The backend also creates a new task entry in the tasks Postgres database table. The 
+tasks are a list of JSON objects that define the steps in the workflow.
 - The backend does **not** directly start the first task. Instead, database emits a notification.
 - A web hook background listener in the backend receives the notification and starts
 a workflows.
