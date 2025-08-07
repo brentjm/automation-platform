@@ -13,11 +13,30 @@ class Workflow(db.Model):
         db.String(64), default="pending"
     )  # pending, running, completed, failed
     created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+    author = db.Column(db.String(128), nullable=False)
     updated_at = db.Column(
         db.DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow
     )
     tasks = db.relationship(
         "Task", backref="workflow", lazy=True, cascade="all, delete-orphan"
+    )
+
+
+class StandardTask(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(128), nullable=False)
+    type = db.Column(db.String(64), nullable=False)
+    description = db.Column(db.Text)
+    parameter_schema = db.Column(JSONB)
+    enabled = db.Column(db.Boolean, default=True)
+    created_at = db.Column(
+        db.DateTime, default=datetime.datetime.now(datetime.timezone.utc)
+    )
+    author = db.Column(db.String(128), nullable=False)
+    updated_at = db.Column(
+        db.DateTime,
+        default=datetime.datetime.now(datetime.timezone.utc),
+        onupdate=datetime.datetime.now(datetime.timezone.utc),
     )
 
 
