@@ -4,8 +4,9 @@ import json
 import requests
 import logging
 
-# from .tasks import run_instrument_task
+from .tasks import run_instrument_task
 from .models import db, Workflow, Task
+from laf.tasks import celery, run_instrument_task
 
 logger = logging.getLogger(__name__)
 
@@ -140,11 +141,8 @@ class WebhookHandler:
     def trigger_instrument_service(self, task):
         """Trigger the instrument service for a task"""
         try:
-            # Import the task here to avoid circular imports
-            from laf.tasks import celery, run_instrument_task
-
             # Use apply_async as an alternative to delay
-            run_instrument_task.apply_async(args=[task.id, task.instrument])
+            run_instrument_task.delay(task.id, task.instrument)
             logger.info(
                 f"Triggered Celery task for instrument {task.instrument} and task {task.id}"
             )
