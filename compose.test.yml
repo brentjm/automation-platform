@@ -1,0 +1,18 @@
+services:
+  centrifuge:
+    build: ./app/instruments/centrifuge
+    volumes:
+      - ./app/instruments/centrifuge:/app
+    environment:
+      BACKEND_URL: "http://web:5000"
+    depends_on:
+      - web
+
+  incubator:
+    build: ./app/instruments/incubator
+    volumes:
+      - ./app/instruments/incubator:/app
+    environment:
+      BACKEND_URL: "http://web:5000"
+    depends_on:
+      - web
