@@ -1,18 +1,19 @@
+x-common:
+  main_platform: &main_platform_env
+    MAIN_PLATFORM_URL: "http://web:5000"
+    SIM_SPEED: "1.0"
+
 services:
-  centrifuge:
-    build: ./app/instruments/centrifuge
-    volumes:
-      - ./app/instruments/centrifuge:/app
+  mobilie-phase-prep:
+    build: ./app/simulated-tasks/mobile-phase-prep
     environment:
-      BACKEND_URL: "http://web:5000"
+      MAIN_PLATFORM_URL: "http://web:5000"
     depends_on:
       - web
 
-  incubator:
-    build: ./app/instruments/incubator
-    volumes:
-      - ./app/instruments/incubator:/app
+  sample-prep:
+    build: ./app/simulated-tasks/sample-prep
     environment:
-      BACKEND_URL: "http://web:5000"
+      MAIN_PLATFORM_URL: "http://web:5000"
     depends_on:
       - web
