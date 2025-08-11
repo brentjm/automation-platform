@@ -76,8 +76,19 @@ _files_
 _files_
 - [workflow_coordinator.py]('../app/backend/src/laf/workflow_coordinator.py')
 
-### 5. Task Execution
+### 5. Task Executor
 
+- Retrieves the underlying service for the task and prepares parameters.
+
+_files_
+- [task_executor.py]('../app/backend/src/laf/task_executor.py')
+
+## 6. Launch Service (Celery)
+
+- Executes the external service (Kubernetes job, HTTP endpoint, Docker container) asynchronously
+
+_files_
+- [celery_tasks.py]('../app/backend/src/laf/celery_tasks.py')
 
 
 ## Kubernetes Job
