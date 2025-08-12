@@ -2,7 +2,7 @@ x-common:
   backend: &backend_env
     BACKEND_URL: "http://web:5000"
   database: &database_env
-    DATABASE_URL: postgresql://user:password@db:5432/lafdb
+    DATABASE_URL=postgresql://${POSTGRES_USER:-user}:${POSTGRES_PASSWORD:-password}@db:5432/${POSTGRES_DB:-laf_db}
   celery: &celery_env
     CELERY_BROKER_URL: redis://redis:6379/0
     CELERY_RESULT_BACKEND: redis://redis:6379/0
@@ -13,9 +13,9 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data/
     environment:
-      - POSTGRES_USER=user
-      - POSTGRES_PASSWORD=password
-      - POSTGRES_DB=lafdb
+      - POSTGRES_USER=${POSTGRES_USER:-user}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-password}
+      - POSTGRES_DB=${POSTGRES_DB:-laf_db}
     ports:
       - "5432:5432"
 
