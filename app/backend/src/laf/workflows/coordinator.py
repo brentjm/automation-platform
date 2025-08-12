@@ -22,6 +22,10 @@ class WorkflowCoordinator:
             workflow_id = data.get("workflow_id")
             operation = data.get("operation", "UPDATE")
 
+            if workflow_id is None:
+                logger.error("No workflow_id provided in notification data")
+                return
+
             if operation == "INSERT":
                 self.start_first_task(workflow_id, db)
             elif operation == "UPDATE":
@@ -41,6 +45,10 @@ class WorkflowCoordinator:
             task_id = data.get("task_id")
             operation = data.get("operation", "UPDATE")
 
+            if task_id is None:
+                logger.error("No task_id provided in notification data")
+                return
+
             if operation == "UPDATE":
                 self.process_task_update(task_id, data, db)
         finally:
@@ -50,7 +58,7 @@ class WorkflowCoordinator:
         """Fetch the Service for a given task's service mapping"""
         service = (
             db.query(Service)
-            .filter(Service.id == task.service_id, Service.enabled == True)
+            .filter(Service.id == task.service_id, Service.enabled.is_(True))
             .first()
         )
 
@@ -84,10 +92,12 @@ class WorkflowCoordinator:
             if not task:
                 return
 
+            db.refresh(task)
+
             # If task completed, start next task
-            if task.status == "completed":
+            if task.status == "completed":  # type: ignore
                 self.start_next_task(task, db)
-            elif task.status == "running":
+            elif task.status == "running":  # type: ignore
                 # Update workflow status to running
                 workflow = task.workflow
                 if workflow.status == "pending":

@@ -29,51 +29,55 @@ def launch_service(
             return
 
         # Merge default parameters with task-specific parameters
-        merged_params = service.default_parameters or {}
+        merged_params: Dict[str, str] = {}
+        if service.default_parameters is not None:
+            merged_params.update(dict(service.default_parameters))  # type: ignore
         if parameters:
             merged_params.update(parameters)
 
         # Launch based on service type
-        if service.type == "kubernetes":
+        service_type = str(service.type)
+        service_endpoint = str(service.endpoint)
+
+        if service_type == "kubernetes":
             k8s_client = KubernetesClient()
             job_name = f"task-{task_id}-{service.name.lower()}"
             k8s_client.launch_job(
                 job_name=job_name,
-                image=service.endpoint,
+                image=service_endpoint,
                 env=merged_params,
                 namespace="default",
             )
             logger.info(f"Launched Kubernetes job {job_name} for task {task_id}")
 
-        elif service.type == "docker":
+        elif service_type == "docker":
             docker_client = DockerClient()
             container_id = docker_client.launch_container(
-                image=service.endpoint, env=merged_params
+                image=service_endpoint, env=merged_params
             )
             logger.info(f"Launched Docker container {container_id} for task {task_id}")
 
-        elif service.type == "http":
+        elif service_type == "http":
             import requests
 
-            response = requests.post(service.endpoint, json=merged_params, timeout=30)
+            response = requests.post(service_endpoint, json=merged_params, timeout=30)
             response.raise_for_status()
-            logger.info(f"Called HTTP endpoint {service.endpoint} for task {task_id}")
+            logger.info(f"Called HTTP endpoint {service_endpoint} for task {task_id}")
 
         else:
-            logger.error(f"Unknown service type: {service.type}")
-            if task:
-                task.status = "failed"
-                db.commit()
+            logger.error(f"Unknown service type: {service_type}")
+            task.status = "failed"  # type: ignore
+            db.commit()
             return
 
         # Update task status to running
-        task.status = "running"
+        task.status = "running"  # type: ignore
         db.commit()
 
     except Exception as e:
         logger.error(f"Error launching service: {e}")
         if task:
-            task.status = "failed"
+            task.status = "failed"  # type: ignore
             db.commit()
     finally:
         db.close()
