@@ -1,0 +1,17 @@
+{
+  "name": "Test Simple Analysis",
+  "tasks": [
+    {
+      "name": "prepare_sample",
+      "service": "instrument-a",
+      "endpoint": "/prepare",
+      "parameters": {"sample_id": "TEST001"}
+    },
+    {
+      "name": "analyze_sample", 
+      "service": "instrument-a",
+      "endpoint": "/start_analysis",
+      "depends_on": ["prepare_sample"]
+    }
+  ]
+}

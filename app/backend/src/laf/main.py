@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 import threading
 
-from .core.config import settings
+# from .core.config import settings
 from .core.database import init_db
 from .api.v1 import workflows, tasks, webhooks
 from .services.handlers.notification_listener import NotificationListener

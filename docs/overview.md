@@ -15,22 +15,28 @@ using Celery for task management. PostgreSQL database for storing workflow
 definitions, task states, and results. Web hooks are used to trigger workflows
 and tasks.
 
+## Getting Started
 
+```bash
+docker compose -f compose.yml -f app/testing/compose.test.yml up --build
+```
 
 ### TODO
 
-**1. Flask-Login + bcrypt (Easiest Start)**
+**1. FastAPI RBAC with OAuth2 & bcrypt (Recommended Start)**
 ```python
-# Simple username/password with proper hashing
-# Supports user sessions, login tracking
-# Easy audit trail implementation
+# Secure username/password authentication with OAuth2
+# Role-based access control (RBAC) using FastAPI dependencies
+# Password hashing with bcrypt
+# Audit trail via SQLAlchemy
 
-Flask-Login + Flask-Principal + bcrypt + SQLAlchemy
+FastAPI + fastapi-users + bcrypt + SQLAlchemy
 ```
 
 This provides:
-- User authentication (Flask-Login)
-- Authorization/permissions (Flask-Principal) 
+
+- User authentication (OAuth2 with fastapi-users)
+- Authorization/permissions (role-based dependencies)
 - Secure password storage (bcrypt)
 - Audit trail in database (SQLAlchemy)
 

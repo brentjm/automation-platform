@@ -1,0 +1,168 @@
+let SessionLoad = 1
+let s:so_save = &g:so | let s:siso_save = &g:siso | setg so=0 siso=0 | setl so=-1 siso=-1
+let v:this_session=expand("<sfile>:p")
+silent only
+silent tabonly
+cd ~/Documents/lab_automation/app/backend
+if expand('%') == '' && !&modified && line('$') <= 1 && getline(1) == ''
+  let s:wipebuf = bufnr('%')
+endif
+let s:shortmess_save = &shortmess
+if &shortmess =~ 'A'
+  set shortmess=aoOA
+else
+  set shortmess=aoO
+endif
+badd +2 alembic.ini
+badd +0 migrations/env.py
+badd +0 migrations/script.py.mako
+badd +0 migrations/README
+badd +0 migrations/versions/6d3b7f86af99_add_workflow_and_task_notification_.py
+badd +0 src/__init__.py
+badd +0 src/laf/workflows/coordinator.py
+badd +0 src/laf/tasks/celery_app.py
+badd +0 src/laf/tasks/workers.py
+badd +0 src/laf/models/database.py
+badd +0 src/laf/services/clients/docker_client.py
+badd +0 src/laf/services/clients/k8s_client.py
+badd +0 src/laf/api/v1/__init__.py
+badd +0 src/laf/api/v1/tasks.py
+badd +0 src/laf/api/v1/worflows.py
+badd +0 src/laf/api/v1/webhooks.py
+badd +0 src/laf/api/dependencies.py
+badd +0 src/laf/core/config.py
+badd +0 src/laf/core/database.py
+badd +0 src/laf/schemas/task.py
+badd +0 src/laf/schemas/workflow.py
+badd +0 src/laf/schemas/result.py
+badd +0 pyproject.toml
+badd +0 wait-for-it.sh
+badd +0 poetry.lock
+badd +0 Dockerfile
+badd +9 src/laf/main.py
+badd +1 src/laf/services/handlers/notification_listener.py
+argglobal
+%argdel
+$argadd alembic.ini
+$argadd migrations/env.py
+$argadd migrations/script.py.mako
+$argadd migrations/README
+$argadd migrations/versions/6d3b7f86af99_add_workflow_and_task_notification_.py
+$argadd src/__init__.py
+$argadd src/laf/workflows/coordinator.py
+$argadd src/laf/tasks/celery_app.py
+$argadd src/laf/tasks/workers.py
+$argadd src/laf/models/database.py
+$argadd src/laf/services/clients/docker_client.py
+$argadd src/laf/services/clients/k8s_client.py
+$argadd ./src/laf/services/handlers/notification_listeners.py
+$argadd ./src/laf/api/main.py
+$argadd src/laf/api/v1/__init__.py
+$argadd src/laf/api/v1/tasks.py
+$argadd src/laf/api/v1/worflows.py
+$argadd src/laf/api/v1/webhooks.py
+$argadd src/laf/api/dependencies.py
+$argadd src/laf/core/config.py
+$argadd src/laf/core/database.py
+$argadd src/laf/schemas/task.py
+$argadd src/laf/schemas/workflow.py
+$argadd src/laf/schemas/result.py
+$argadd pyproject.toml
+$argadd wait-for-it.sh
+$argadd poetry.lock
+$argadd Dockerfile
+edit src/laf/main.py
+let s:save_splitbelow = &splitbelow
+let s:save_splitright = &splitright
+set splitbelow splitright
+wincmd _ | wincmd |
+vsplit
+wincmd _ | wincmd |
+vsplit
+2wincmd h
+wincmd w
+wincmd w
+let &splitbelow = s:save_splitbelow
+let &splitright = s:save_splitright
+wincmd t
+let s:save_winminheight = &winminheight
+let s:save_winminwidth = &winminwidth
+set winminheight=0
+set winheight=1
+set winminwidth=0
+set winwidth=1
+exe 'vert 1resize ' . ((&columns * 40 + 116) / 232)
+exe 'vert 2resize ' . ((&columns * 74 + 116) / 232)
+exe 'vert 3resize ' . ((&columns * 116 + 116) / 232)
+tcd ~/Documents/lab_automation
+argglobal
+enew
+file ~/Documents/lab_automation/app/backend/neo-tree\ filesystem\ \[1]
+balt ~/Documents/lab_automation/app/backend/alembic.ini
+setlocal foldmethod=manual
+setlocal foldexpr=0
+setlocal foldmarker={{{,}}}
+setlocal foldignore=#
+setlocal foldlevel=99
+setlocal foldminlines=1
+setlocal foldnestmax=4
+setlocal foldenable
+wincmd w
+argglobal
+if bufexists(fnamemodify("~/Documents/lab_automation/app/backend/src/laf/main.py", ":p")) | buffer ~/Documents/lab_automation/app/backend/src/laf/main.py | else | edit ~/Documents/lab_automation/app/backend/src/laf/main.py | endif
+if &buftype ==# 'terminal'
+  silent file ~/Documents/lab_automation/app/backend/src/laf/main.py
+endif
+setlocal foldmethod=manual
+setlocal foldexpr=0
+setlocal foldmarker={{{,}}}
+setlocal foldignore=#
+setlocal foldlevel=99
+setlocal foldminlines=1
+setlocal foldnestmax=4
+setlocal foldenable
+silent! normal! zE
+let &fdl = &fdl
+let s:l = 11 - ((10 * winheight(0) + 27) / 54)
+if s:l < 1 | let s:l = 1 | endif
+keepjumps exe s:l
+normal! zt
+keepjumps 11
+normal! 0
+wincmd w
+argglobal
+enew
+file ~/Documents/lab_automation/app/backend/copilot-chat
+balt ~/Documents/lab_automation/app/backend/alembic.ini
+setlocal foldmethod=expr
+setlocal foldexpr=v:lua.CopilotChatFoldExpr(v:lnum,\ 'â”€â”€â”€')
+setlocal foldmarker={{{,}}}
+setlocal foldignore=#
+setlocal foldlevel=99
+setlocal foldminlines=1
+setlocal foldnestmax=4
+setlocal foldenable
+wincmd w
+2wincmd w
+exe 'vert 1resize ' . ((&columns * 40 + 116) / 232)
+exe 'vert 2resize ' . ((&columns * 74 + 116) / 232)
+exe 'vert 3resize ' . ((&columns * 116 + 116) / 232)
+tabnext 1
+if exists('s:wipebuf') && len(win_findbuf(s:wipebuf)) == 0 && getbufvar(s:wipebuf, '&buftype') isnot# 'terminal'
+  silent exe 'bwipe ' . s:wipebuf
+endif
+unlet! s:wipebuf
+set winheight=1 winwidth=20
+let &shortmess = s:shortmess_save
+let &winminheight = s:save_winminheight
+let &winminwidth = s:save_winminwidth
+let s:sx = expand("<sfile>:p:r")."x.vim"
+if filereadable(s:sx)
+  exe "source " . fnameescape(s:sx)
+endif
+let &g:so = s:so_save | let &g:siso = s:siso_save
+set hlsearch
+nohlsearch
+doautoall SessionLoadPost
+unlet SessionLoad
+" vim: set ft=vim :
